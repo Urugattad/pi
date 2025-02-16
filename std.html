@@ -22,7 +22,9 @@
         function hidesensorForm() {
             document.getElementById("sensorform").style.display = "none";
         }
-
+	function hidetempForm() {
+            document.getElementById("temperatureOutput").style.display = "none";
+        }
 
         function addSwitch() {
             let name = document.getElementById("deviceName").value;
@@ -48,7 +50,7 @@
             switchDiv.setAttribute("id", "switch-" + controlCount);
 
             switchDiv.innerHTML = `
-                <button class="close-btn" onclick="removeSwitch(${controlCount}, '${pin}')">'</button>
+                <button class="close-btn" onclick="removeSwitch(${controlCount}, '${pin}')">X</button>
                 <strong>${name} (GPIO ${pin})</strong>
                 <label class="switch">
                     <input type="checkbox" id="toggle-${controlCount}" onchange="toggleGPIO('${name}','${controlCount}', '${pin}')">
@@ -59,6 +61,24 @@
             container.appendChild(switchDiv);
             hideForm();
         }
+		
+function fetchGPIOStates() {
+    fetch('/get_gpio_states')
+    .then(response => response.json())
+    .then(data => {
+        for (let pin in data) {
+            let switchElement = document.querySelector(`input[data-pin="${pin}"]`);
+            if (switchElement) {
+                switchElement.checked = data[pin];
+            }
+        }
+    })
+    .catch(error => console.error('Error fetching GPIO states:', error));
+}
+
+setInterval(fetchGPIOStates, 5000);
+
+
 
         function removeSwitch(id, pin) {
             let switchDiv = document.getElementById("switch-" + id);
@@ -126,9 +146,7 @@ function addSensor() {
             document.getElementById("motion").style.display = "block"; // Show Motion
             getmotion();
             break;
-        case "102":
-            break;
-        default:
+            default:
             alert("Unknown sensor type!");
     }
 
@@ -221,7 +239,7 @@ function addSensor() {
             border: 1px solid #ccc;
             border-radius: 5px;
         }
-
+	
         .modal .close-btn {
             position: absolute;
             top: 10px;
@@ -339,6 +357,9 @@ function addSensor() {
 #temperatureOutput, #motion {
     display: none; /* Hide until "Submit" is clicked */
 }
+.close-btn:hover {
+    background: darkred;
+}
 
     </style>
 </head>
@@ -346,14 +367,17 @@ function addSensor() {
     <h2>GPIO Control</h2>
 <hr></hr>
 	<p id="responseMessage" style="color: green; font-weight: bold;"></p>  <!-- ✅ Message Display Here -->
-    	<div id="temperatureOutput" class="retro-box">Temp: --°C</div>
-        <div id="motion" class="retro-box">: Waiting...</div>
+    	<div id="temperatureOutput" class="retro-box">
+	<button class="close-btn" onclick="hidetempForm()">X</button>
+	Temp: --°C</div>
+        <div id="motion" class="retro-box">
+	: Waiting...</div>
     	<!--<p id="motion" style="color: red; font-weight: bold;"></p>-->
 	<button class="add-gpio-btn" onclick="showForm()">Add GPIO Control</button>
 	<button class="add-sensor-btn" onclick="showsensorForm()">Add sensor Control</button>
 
 	<!-- Modal for Sensor Control Form -->
-	<div id="sensorform" class="modal" onclick="hideForm()">
+	<div id="sensorform" class="modal" onclick="hidesensorForm()">
 	<div class="modal-content" onclick="event.stopPropagation()">
 		<button class="close-btn" onclick="hidesensorForm()">X</button>
         <br><br>
@@ -361,7 +385,6 @@ function addSensor() {
         <select id="sensor">
             <option value="100">temperature</option>
             <option value="101">motion </option>
-            <option value="102">camera</option>
             
         </select>
 
