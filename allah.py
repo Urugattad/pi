@@ -29,4 +29,5 @@ def get_pir():
     return jsonify(message=f"{motion_detected}" )
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
+
