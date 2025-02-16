@@ -2,6 +2,9 @@
 sudo nano /etc/systemd/system/flask_gpio.service
 
 
+ls /etc/systemd/system/
+
+
 
 [Unit]
 Description=Flask GPIO Control Web App
