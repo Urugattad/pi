@@ -1,3 +1,5 @@
+python3 -c "import Adafruit_DHT; print('Adafruit_DHT installed successfully!')"
+
 sudo apt install python3-pip python3-dev build-essential -y
 
 sudo apt update && sudo apt upgrade -y
