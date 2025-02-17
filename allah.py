@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
-import random
+import Adafruit_DHT
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
@@ -9,6 +9,9 @@ app.secret_key = "supersecretkey"
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///gpio.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+
+DHT_SENSOR = Adafruit_DHT.DHT11  # Specify the sensor type
+DHT_PIN = 16  # Define the GPIO pin connected to the DHT11
 
 PIR_PIN = 4  # Define the GPIO pin connected to the PIR sensor
 
@@ -94,8 +97,12 @@ def get_temperature():
     if 'user' not in session:
         return jsonify({"error": "Unauthorized"}), 403  
 
-    temperature = round(random.uniform(20, 35), 2)
-    return jsonify(message=f"{temperature}")
+    humidity, temperature = Adafruit_DHT.read(DHT_SENSOR, DHT_PIN)  # Read data from DHT11
+
+    if temperature is not None and humidity is not None:
+        return jsonify(temperature=f"{temperature}°C", humidity=f"{humidity}%")
+    else:
+        return jsonify(error="Failed to read from DHT11 sensor"), 500 
 
 @app.route('/get_pir', methods=['GET'])
 def get_pir():
