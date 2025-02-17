@@ -22,10 +22,10 @@ def toggle_gpio():
     state = data.get('state', False)
 
     if pin not in gpio_states:
-        GPIO.setup(pin, GPIO.OUT)  # Set pin as output
+        GPIO.setup(pin, GPIO.OUT)
 
     GPIO.output(pin, state)
-    gpio_states[pin] = state  # Store pin state
+    gpio_states[pin] = state  # Store pin state persistently
 
     status = "ON" if state else "OFF"
     return jsonify(message=f"GPIO {pin} is now {status}")
