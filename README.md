@@ -1,3 +1,5 @@
+sudo apt install python3-pip python3-dev build-essential -y
+
 sudo apt update && sudo apt upgrade -y
 
 pip install flask flask-sqlalchemy
