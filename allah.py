@@ -2,6 +2,9 @@ from flask import Flask, request, jsonify, render_template, redirect, url_for, s
 import random
 import RPi.GPIO as GPIO
 
+gpio_pir = 4  # Define the PIR sensor GPIO pin
+GPIO.setup(gpio_pir, GPIO.IN)
+
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Secret key for session management
 
@@ -71,7 +74,7 @@ def get_temperature():
 def get_pir():
     if not session.get('logged_in'):
         return jsonify({'message': 'Unauthorized'}), 401
-    motion_detected = random.choice([True, False])  # Simulated PIR data
+    motion_detected = GPIO.input(gpio_pir)
     if motion_detected:
         return jsonify(message="Motion Detected")
     else:
