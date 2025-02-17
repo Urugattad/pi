@@ -1,5 +1,6 @@
 sudo apt update && sudo apt upgrade -y
 
+pip install flask flask-sqlalchemy
 
 python3 --version
 pip3 --version
