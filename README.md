@@ -1,3 +1,17 @@
+sudo apt update && sudo apt upgrade -y
+
+
+python3 --version
+pip3 --version
+
+
+sudo apt install python3 python3-pip -y
+
+
+pip3 install flask-socketio eventlet gevent
+
+pip3 install gevent gevent-websocket
+
 # pi
 sudo nano /etc/systemd/system/flask_gpio.service
 
