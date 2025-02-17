@@ -1,118 +1,84 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session
-from flask_sqlalchemy import SQLAlchemy
-import Adafruit_DHT
+import random
+import RPi.GPIO as GPIO
 
 app = Flask(__name__)
-app.secret_key = "supersecretkey"
+app.secret_key = 'your_secret_key'  # Secret key for session management
 
-# Configure SQLite Database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///gpio.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+# User credentials
+USERNAME = 'picloudcontrol'
+PASSWORD = 'root'
 
-DHT_SENSOR = Adafruit_DHT.DHT11  # Specify the sensor type
-DHT_PIN = 16  # Define the GPIO pin connected to the DHT11
+# Dictionary to track GPIO states
+gpio_states = {}
 
-PIR_PIN = 4  # Define the GPIO pin connected to the PIR sensor
+# Setup Raspberry Pi GPIO
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
 
-# Set up the GPIO pin
-GPIO.setmode(GPIO.BCM)  # Use Broadcom pin numbering
-GPIO.setup(PIR_PIN, GPIO.IN)
-
-# Hardcoded credentials
-USERNAME = "picloudcontrol"
-PASSWORD = "root"
-
-# Database Model for GPIO States
-class GPIOState(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    pin = db.Column(db.Integer, unique=True, nullable=False)
-    state = db.Column(db.Boolean, default=False)
-
-    def __repr__(self):
-        return f"<GPIO {self.pin} - {'ON' if self.state else 'OFF'}>"
-
-# Create the database if it doesn't exist
-with app.app_context():
-    db.create_all()
-
-@app.route('/')
-def index():
-    if 'user' not in session:
-        return redirect(url_for('login'))  
-    return render_template('std.html')  
-
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        
         if username == USERNAME and password == PASSWORD:
-            session['user'] = username  
+            session['logged_in'] = True
             return redirect(url_for('index'))
         else:
-            return render_template('login.html', error="Invalid credentials!")
-    
+            return render_template('login.html', error='Invalid credentials')
     return render_template('login.html')
+
+@app.route('/home')
+def index():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    return render_template('std.html')  # Load the HTML page
 
 @app.route('/logout')
 def logout():
-    session.pop('user', None)
+    session.pop('logged_in', None)
     return redirect(url_for('login'))
 
 @app.route('/toggle_gpio', methods=['POST'])
 def toggle_gpio():
-    if 'user' not in session:
-        return jsonify({"error": "Unauthorized"}), 403  
-
+    if not session.get('logged_in'):
+        return jsonify({'message': 'Unauthorized'}), 401
     data = request.get_json()
     pin = int(data.get('pin', 0))
     state = data.get('state', False)
 
-    gpio_entry = GPIOState.query.filter_by(pin=pin).first()
-    
-    if gpio_entry:
-        gpio_entry.state = state  # Update existing pin state
-    else:
-        gpio_entry = GPIOState(pin=pin, state=state)
-        db.session.add(gpio_entry)
-
-    db.session.commit()  # Save to database
+    GPIO.setup(pin, GPIO.OUT)
+    GPIO.output(pin, state)
+    gpio_states[pin] = state  # Store pin state
 
     status = "ON" if state else "OFF"
     return jsonify(message=f"GPIO {pin} is now {status}")
 
 @app.route('/get_gpio_states', methods=['GET'])
 def get_gpio_states():
-    if 'user' not in session:
-        return jsonify({"error": "Unauthorized"}), 403  
-
-    gpio_entries = GPIOState.query.all()
-    gpio_states = {entry.pin: entry.state for entry in gpio_entries}
+    if not session.get('logged_in'):
+        return jsonify({'message': 'Unauthorized'}), 401
     return jsonify(gpio_states)
 
 @app.route('/get_temperature', methods=['GET'])
 def get_temperature():
-    if 'user' not in session:
-        return jsonify({"error": "Unauthorized"}), 403  
-
-    humidity, temperature = Adafruit_DHT.read(DHT_SENSOR, DHT_PIN)  # Read data from DHT11
-
-    if temperature is not None and humidity is not None:
-        return jsonify(temperature=f"{temperature}°C", humidity=f"{humidity}%")
-    else:
-        return jsonify(error="Failed to read from DHT11 sensor"), 500 
+    if not session.get('logged_in'):
+        return jsonify({'message': 'Unauthorized'}), 401
+    temperature = round(random.uniform(20, 35), 2)  # Simulated data
+    return jsonify(message=f"{temperature}")
 
 @app.route('/get_pir', methods=['GET'])
 def get_pir():
-    if 'user' not in session:
-        return jsonify({"error": "Unauthorized"}), 403  
-
-    motion_detected = GPIO.input(PIR_PIN)  # Read actual PIR sensor state
-    motion_status = "Detected" if motion_detected else "Undetected"  # Custom output
-
-    return jsonify(message=motion_status)
+    if not session.get('logged_in'):
+        return jsonify({'message': 'Unauthorized'}), 401
+    motion_detected = random.choice([True, False])  # Simulated PIR data
+    if motion_detected:
+        return jsonify(message="Motion Detected")
+    else:
+        return jsonify(message="Motion Not Detected")
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", debug=True)
+    try:
+        app.run(host="0.0.0.0", debug=True)
+    finally:
+        GPIO.cleanup()
