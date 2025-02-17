@@ -26,64 +26,66 @@
             document.getElementById("temperatureOutput").style.display = "none";
         }
 
-        function addSwitch() {
-    let name = document.getElementById("deviceName").value;
-    let pin = document.getElementById("gpioPin").value;
+        var socket = io();  // Connect to the server
 
-    if (!name) {
-        alert("Please enter a name.");
-        return;
-    }
+    function addSwitch() {
+        let name = document.getElementById("deviceName").value;
+        let pin = document.getElementById("gpioPin").value;
 
-    if (usedPins.has(pin)) {
-        alert(`GPIO ${pin} is already in use! Please choose another.`);
-        return;
-    }
-
-    usedPins.add(pin);
-    controlCount++;
-
-    let container = document.getElementById("switchesContainer");
-
-    let switchDiv = document.createElement("div");
-    switchDiv.classList.add("switch-box");
-    switchDiv.setAttribute("id", "switch-" + controlCount);
-
-    switchDiv.innerHTML = `
-        <button class="close-btn" onclick="removeSwitch(${controlCount}, '${pin}')">X</button>
-        <strong>${name} (GPIO ${pin})</strong>
-        <label class="switch">
-            <input type="checkbox" id="toggle-${controlCount}" data-pin="${pin}" onchange="toggleGPIO('${name}','${controlCount}', '${pin}')">
-            <span class="slider"></span>
-        </label>
-    `;
-
-    container.appendChild(switchDiv);
-    hideForm();
-
-    // Fetch the GPIO state and update the switch immediately
-    fetch('/get_gpio_states')
-    .then(response => response.json())
-    .then(data => {
-        if (data[pin] !== undefined) {
-            document.getElementById(`toggle-${controlCount}`).checked = data[pin];
+        if (!name) {
+            alert("Please enter a name.");
+            return;
         }
-    })
-    .catch(error => console.error('Error fetching GPIO states:', error));
-}
 
-        function removeSwitch(id, pin) {
-            let switchDiv = document.getElementById("switch-" + id);
-            if (switchDiv) {
-                switchDiv.remove();
-                usedPins.delete(pin);
+        let container = document.getElementById("switchesContainer");
+
+        let switchDiv = document.createElement("div");
+        switchDiv.classList.add("switch-box");
+        switchDiv.setAttribute("id", "switch-" + pin);
+
+        switchDiv.innerHTML = `
+            <button class="close-btn" onclick="removeSwitch('${pin}')">X</button>
+            <strong>${name} (GPIO ${pin})</strong>
+            <label class="switch">
+                <input type="checkbox" id="toggle-${pin}" data-pin="${pin}" onchange="toggleGPIO('${pin}')">
+                <span class="slider"></span>
+            </label>
+        `;
+
+        container.appendChild(switchDiv);
+        hideForm();
+    }
+
+    function removeSwitch(pin) {
+        let switchDiv = document.getElementById("switch-" + pin);
+        if (switchDiv) {
+            switchDiv.remove();
+        }
+    }
+
+    function toggleGPIO(pin) {
+        let state = document.getElementById(`toggle-${pin}`).checked;
+        socket.emit('toggle_gpio', { pin: pin, state: state });
+    }
+
+    socket.on('update_gpio', function(data) {
+        let switchElement = document.getElementById(`toggle-${data.pin}`);
+        if (switchElement) {
+            switchElement.checked = data.state;
+        }
+    });
+
+    socket.on('update_all_gpio', function(states) {
+        for (let pin in states) {
+            let switchElement = document.getElementById(`toggle-${pin}`);
+            if (switchElement) {
+                switchElement.checked = states[pin];
             }
         }
+    });
 
-        function toggleGPIO(name, id, pin) {
-            let state = document.getElementById(`toggle-${id}`).checked;
-            sendGPIOData(name, pin, state);
-        }
+    // Request initial GPIO states on page load
+    socket.emit('request_gpio_states');
 
         function sendGPIOData(name, pin, state) {
             fetch('/toggle_gpio', {
