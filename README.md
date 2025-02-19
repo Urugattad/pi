@@ -1,3 +1,7 @@
+python
+import guizero
+pip3 install guizero --break-system-packages
+
 python3 -c "import Adafruit_DHT; print('Adafruit_DHT installed successfully!')"
 
 sudo apt install python3-pip python3-dev build-essential -y
