@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session
 import random
 import RPi.GPIO as GPIO
+import time
+import os
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Secret key for session management
@@ -8,6 +10,9 @@ app.secret_key = 'your_secret_key'  # Secret key for session management
 # User credentials
 USERNAME = 'picloudcontrol'
 PASSWORD = 'root'
+
+# Path to IIO device
+DEVICE_PATH = "/sys/bus/iio/devices/iio:device0"
 
 # Dictionary to track GPIO states
 gpio_states = {}
@@ -63,8 +68,11 @@ def toggle_gpio():
 def get_temperature():
     if not session.get('logged_in'):
         return jsonify({'message': 'Unauthorized'}), 401
-    temperature = round(random.uniform(20, 35), 2)  # Simulated data
-    return jsonify(message=f"{temperature}")
+
+    flag, temperature = read_first_line(DEVICE_PATH + "/in_temp_input")
+    temperature_value = (temperature // 1000) if flag else "N.A."
+
+    return jsonify(message=f"{temperature_value}°C")
 
 @app.route('/get_pir', methods=['GET'])
 def get_pir():
