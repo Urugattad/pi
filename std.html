@@ -36,7 +36,7 @@
     }
 
     if (usedPins.has(pin)) {
-        alert(`GPIO ${pin} is already in use! Please choose another.`);
+        alert(GPIO ${pin} is already in use! Please choose another.);
         return;
     }
 
@@ -88,7 +88,7 @@
 
 
         function toggleGPIO(name, id, pin) {
-            let state = document.getElementById(`toggle-${id}`).checked;
+            let state = document.getElementById(toggle-${id}).checked;
             sendGPIOData(name, pin, state);
         }
 
@@ -133,6 +133,7 @@ function hideMotionForm() {
 
 // Call functions every 5 seconds to keep values updated
 setInterval(getTemperature, 5000);
+setInterval(getmotion, 100);
 
 
 // Make sure the elements are visible from the start
