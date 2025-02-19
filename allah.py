@@ -21,6 +21,14 @@ gpio_pir = 4  # PIR sensor pin
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(gpio_pir, GPIO.IN)
 
+# Function to read the first line of a file and return an integer value
+def read_first_line(filename):
+    try:
+        with open(filename, "rt") as f:
+            return True, int(f.readline())
+    except (ValueError, OSError):
+        return False, 0  # Return 0 if reading fails
+
 @app.route('/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
