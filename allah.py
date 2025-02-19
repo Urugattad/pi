@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session
 import random
-import RPi.GPIO as GPIO
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Secret key for session management
@@ -9,12 +8,10 @@ app.secret_key = 'your_secret_key'  # Secret key for session management
 USERNAME = 'picloudcontrol'
 PASSWORD = 'root'
 
-# Dictionary to track GPIO states
+# Dictionary to track GPIO states (simulated)
 gpio_states = {}
 
-gpio_pir = 4  # PIR sensor pin
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(gpio_pir, GPIO.IN)
+gpio_pir = 4  # Simulated PIR sensor pin
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
@@ -47,12 +44,17 @@ def toggle_gpio():
     pin = int(data.get('pin', 0))
     state = data.get('state', False)
 
-    GPIO.setup(pin, GPIO.OUT)
-    GPIO.output(pin, state)
+    # Simulate GPIO state change
     gpio_states[pin] = state
+
+    # If state is False, log the removal
+    if not state:
+        gpio_states.pop(pin, None)  # Remove pin from tracking if it's turned off
 
     status = "ON" if state else "OFF"
     return jsonify(message=f"GPIO {pin} is now {status}")
+
+
 
 @app.route('/get_temperature', methods=['GET'])
 def get_temperature():
@@ -65,11 +67,9 @@ def get_temperature():
 def get_pir():
     if not session.get('logged_in'):
         return jsonify({'message': 'Unauthorized'}), 401
-    motion_detected = GPIO.input(gpio_pir)
+    # Simulated PIR sensor data
+    motion_detected = random.choice([True, False])
     return jsonify(message="Motion Detected" if motion_detected else "Motion Not Detected")
 
 if __name__ == '__main__':
-    try:
-        app.run(host="0.0.0.0", debug=True)
-    finally:
-        GPIO.cleanup()
+    app.run(host="0.0.0.0", debug=True)
