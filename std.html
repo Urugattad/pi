@@ -65,13 +65,27 @@
     hideForm();
 }
 
-        function removeSwitch(id, pin) {
-            let switchDiv = document.getElementById("switch-" + id);
-            if (switchDiv) {
-                switchDiv.remove();
-                usedPins.delete(pin);
-            }
-        }
+       function removeSwitch(id, pin) {
+    let switchDiv = document.getElementById("switch-" + id);
+    if (switchDiv) {
+        // Send request to backend to turn off the GPIO pin
+        fetch('/toggle_gpio', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pin: parseInt(pin), state: false })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data.message); // Debugging message
+        })
+        .catch(error => console.error('Error:', error));
+
+        // Remove the switch UI
+        switchDiv.remove();
+        usedPins.delete(pin);
+    }
+}
+
 
         function toggleGPIO(name, id, pin) {
             let state = document.getElementById(`toggle-${id}`).checked;
