@@ -1,74 +1,30 @@
-sudo apt update && sudo apt upgrade -y
-sudo apt install apache2 libapache2-mod-wsgi-py3 python3-pip -y
-
-cd /path/to/your/project
-pip install flask
-
-pip install flask-wtf flask-sqlalchemy
-
-nano wsgi.py
-
-from allah import app
-
-if __name__ == "__main__":
-    app.run()
-
-sudo nano /etc/apache2/sites-available/picloudcontrol.conf
-
-<VirtualHost *:80>
-    ServerName your_raspberrypi_ip
-
-    WSGIDaemonProcess picloudcontrol user=pi group=pi threads=5
-    WSGIScriptAlias / /var/www/picloudcontrol/wsgi.py
-
-    <Directory /var/www/picloudcontrol>
-        Require all granted
-    </Directory>
-
-    Alias /static /var/www/picloudcontrol/static
-    <Directory /var/www/picloudcontrol/static/>
-        Require all granted
-    </Directory>
-
-    ErrorLog ${APACHE_LOG_DIR}/picloudcontrol_error.log
-    CustomLog ${APACHE_LOG_DIR}/picloudcontrol_access.log combined
-</VirtualHost>
-
-sudo mkdir -p /var/www/picloudcontrol
-sudo cp -r /path/to/your/project/* /var/www/picloudcontrol/
-
-sudo chown -R www-data:www-data /var/www/picloudcontrol
-sudo chmod -R 755 /var/www/picloudcontrol
-
-sudo a2ensite picloudcontrol.conf
-sudo systemctl restart apache2
-
-http://your_raspberrypi_ip
-
-sudo systemctl enable apache2
-
 sudo apt update
-sudo apt install mysql-server -y
-pip install mysql-connector-python flask
+sudo apt install postgresql postgresql-contrib -y
+pip install psycopg2 flask
 
-sudo mysql_secure_installation
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
 
-sudo mysql -u root -p
+sudo -i -u postgres
+psql
 
 CREATE DATABASE picloud;
-USE picloud;
+CREATE USER pi WITH PASSWORD 'yourpassword';
+GRANT ALL PRIVILEGES ON DATABASE picloud TO pi;
+
+\c picloud
 
 CREATE TABLE gpio_states (
     pin INT PRIMARY KEY,
     state BOOLEAN NOT NULL
 );
 
-CREATE USER 'pi'@'localhost' IDENTIFIED BY 'yourpassword';
-GRANT ALL PRIVILEGES ON picloud.* TO 'pi'@'localhost';
-FLUSH PRIVILEGES;
-EXIT;
+\q
+exit
 
-import mysql.connector
+
+
+import psycopg2
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session
 
 app = Flask(__name__)
@@ -77,16 +33,16 @@ app.secret_key = 'your_secret_key'
 USERNAME = 'picloudcontrol'
 PASSWORD = 'root'
 
-# Database connection
+# Database connection function
 def get_db_connection():
-    return mysql.connector.connect(
-        host="localhost",
+    return psycopg2.connect(
+        dbname="picloud",
         user="pi",
         password="yourpassword",
-        database="picloud"
+        host="localhost"
     )
 
-# Initialize the database (optional, but useful for first-time setup)
+# Initialize the database (ensures the table exists)
 def init_db():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -95,6 +51,7 @@ def init_db():
         state BOOLEAN NOT NULL
     )''')
     conn.commit()
+    cursor.close()
     conn.close()
 
 init_db()  # Ensure the table exists
@@ -134,9 +91,14 @@ def toggle_gpio():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("INSERT INTO gpio_states (pin, state) VALUES (%s, %s) ON DUPLICATE KEY UPDATE state=%s", 
-                   (pin, state, state))
+    cursor.execute("""
+        INSERT INTO gpio_states (pin, state) 
+        VALUES (%s, %s) 
+        ON CONFLICT (pin) DO UPDATE SET state = EXCLUDED.state
+    """, (pin, state))
+
     conn.commit()
+    cursor.close()
     conn.close()
 
     status = "ON" if state else "OFF"
@@ -148,15 +110,16 @@ def get_gpio_states():
         return jsonify({'message': 'Unauthorized'}), 401
 
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     cursor.execute("SELECT * FROM gpio_states")
     gpio_states = cursor.fetchall()
     conn.close()
 
-    return jsonify({row["pin"]: row["state"] for row in gpio_states})
+    return jsonify({pin: state for pin, state in gpio_states})
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", debug=True)
+
 
 
 
@@ -173,6 +136,7 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .catch(error => console.error('Error fetching GPIO states:', error));
 });
+
 
 sudo systemctl restart apache2
 
