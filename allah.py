@@ -4,7 +4,7 @@ import RPi.GPIO as GPIO
 import time
 import os
 
-app = Flask(__name__)
+app = Flask(_name_)
 app.secret_key = 'your_secret_key'  # Secret key for session management
 
 # User credentials
@@ -19,7 +19,6 @@ gpio_states = {}
 
 gpio_pir = 4  # PIR sensor pin
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(gpio_pir, GPIO.IN)
 
 # Function to read the first line of a file and return an integer value
 def read_first_line(filename):
@@ -28,6 +27,7 @@ def read_first_line(filename):
             return True, int(f.readline())
     except (ValueError, OSError):
         return False, 0  # Return 0 if reading fails
+
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
@@ -80,16 +80,17 @@ def get_temperature():
     flag, temperature = read_first_line(DEVICE_PATH + "/in_temp_input")
     temperature_value = (temperature // 1000) if flag else "N.A."
 
-    return jsonify(message=f"{temperature_value}°C")
+    return jsonify(message=f"{temperature_value}")
 
 @app.route('/get_pir', methods=['GET'])
 def get_pir():
     if not session.get('logged_in'):
         return jsonify({'message': 'Unauthorized'}), 401
-    motion_detected = GPIO.input(gpio_pir)
+    GPIO.setup(gpio_pir, GPIO.IN)
+    motion_detected =  GPIO.input(gpio_pir)
     return jsonify(message="Motion Detected" if motion_detected else "Motion Not Detected")
 
-if __name__ == '__main__':
+if _name_ == '_main_':
     try:
         app.run(host="0.0.0.0", debug=True)
     finally:
