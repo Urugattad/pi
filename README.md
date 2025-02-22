@@ -36,7 +36,9 @@ GRANT ALL PRIVILEGES ON picloudcontrol.* TO 'picloud'@'localhost';
 FLUSH PRIVILEGES;
 EXIT;
 
+//in config.txt
 
+dtoverlay=dht11,gpiopin=26
 
 
 
