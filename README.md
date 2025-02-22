@@ -1,147 +1,41 @@
+
+
+pip install mysql-connector-python --break-system-packages
+
 sudo apt update
-sudo apt install postgresql postgresql-contrib -y
-pip install psycopg2 flask
+sudo apt install mysql-server
+pip install flask-mysql-connector --break-system-packages
 
-sudo systemctl start postgresql
-sudo systemctl enable postgresql
+sudo apt install mariadb-server -y
 
-sudo -i -u postgres
-psql
+sudo systemctl status mariadb
 
-CREATE DATABASE picloud;
-CREATE USER pi WITH PASSWORD 'yourpassword';
-GRANT ALL PRIVILEGES ON DATABASE picloud TO pi;
+sudo systemctl start mariadb
 
-\c picloud
+sudo mysql_secure_installation
 
-CREATE TABLE gpio_states (
-    pin INT PRIMARY KEY,
-    state BOOLEAN NOT NULL
+Press Enter for the current root password (MariaDB uses Unix authentication by default).
+Set a new root password when prompted.
+Answer Y (Yes) to all security questions.
+
+sudo mysql -u root -p
+
+CREATE DATABASE picloudcontrol;
+USE picloudcontrol;
+
+CREATE TABLE gpio_pin_states (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    pin INT UNIQUE NOT NULL,
+    state BOOLEAN NOT NULL,
+    name VARCHAR(50) NOT NULL DEFAULT 'Unknown'
 );
+
 
 \q
 exit
 
 
 
-import psycopg2
-from flask import Flask, request, jsonify, render_template, redirect, url_for, session
-
-app = Flask(__name__)
-app.secret_key = 'your_secret_key'
-
-USERNAME = 'picloudcontrol'
-PASSWORD = 'root'
-
-# Database connection function
-def get_db_connection():
-    return psycopg2.connect(
-        dbname="picloud",
-        user="pi",
-        password="yourpassword",
-        host="localhost"
-    )
-
-# Initialize the database (ensures the table exists)
-def init_db():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute('''CREATE TABLE IF NOT EXISTS gpio_states (
-        pin INT PRIMARY KEY, 
-        state BOOLEAN NOT NULL
-    )''')
-    conn.commit()
-    cursor.close()
-    conn.close()
-
-init_db()  # Ensure the table exists
-
-@app.route('/', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        if username == USERNAME and password == PASSWORD:
-            session['logged_in'] = True
-            return redirect(url_for('index'))
-        else:
-            return render_template('login.html', error='Invalid credentials')
-    return render_template('login.html')
-
-@app.route('/home')
-def index():
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
-    return render_template('std.html')
-
-@app.route('/logout')
-def logout():
-    session.pop('logged_in', None)
-    return redirect(url_for('login'))
-
-@app.route('/toggle_gpio', methods=['POST'])
-def toggle_gpio():
-    if not session.get('logged_in'):
-        return jsonify({'message': 'Unauthorized'}), 401
-
-    data = request.get_json()
-    pin = int(data.get('pin', 0))
-    state = bool(data.get('state', False))
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        INSERT INTO gpio_states (pin, state) 
-        VALUES (%s, %s) 
-        ON CONFLICT (pin) DO UPDATE SET state = EXCLUDED.state
-    """, (pin, state))
-
-    conn.commit()
-    cursor.close()
-    conn.close()
-
-    status = "ON" if state else "OFF"
-    return jsonify(message=f"GPIO {pin} is now {status}")
-
-@app.route('/get_gpio_states', methods=['GET'])
-def get_gpio_states():
-    if not session.get('logged_in'):
-        return jsonify({'message': 'Unauthorized'}), 401
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM gpio_states")
-    gpio_states = cursor.fetchall()
-    conn.close()
-
-    return jsonify({pin: state for pin, state in gpio_states})
-
-if __name__ == '__main__':
-    app.run(host="0.0.0.0", debug=True)
-
-
-
-
-document.addEventListener("DOMContentLoaded", function () {
-    fetch('/get_gpio_states')
-        .then(response => response.json())
-        .then(data => {
-            for (const [pin, state] of Object.entries(data)) {
-                let switchElement = document.querySelector(`#toggle-${pin}`);
-                if (switchElement) {
-                    switchElement.checked = state == 1;  // Restore toggle state
-                }
-            }
-        })
-        .catch(error => console.error('Error fetching GPIO states:', error));
-});
-
-
-sudo systemctl restart apache2
-
-
-python3 -c "import Adafruit_DHT; print('Adafruit_DHT installed successfully!')"
 
 
 
