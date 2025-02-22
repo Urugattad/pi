@@ -2,8 +2,8 @@
 
 pip install mysql-connector-python --break-system-packages
 
-sudo apt update
-sudo apt install mysql-server
+pip install flask-mail --break-system-packages
+
 pip install flask-mysql-connector --break-system-packages
 
 sudo apt install mariadb-server -y
