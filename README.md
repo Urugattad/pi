@@ -31,9 +31,10 @@ CREATE TABLE gpio_pin_states (
 );
 
 
-\q
-exit
-
+CREATE USER 'picloud'@'localhost' IDENTIFIED BY 'toor';
+GRANT ALL PRIVILEGES ON picloudcontrol.* TO 'picloud'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
 
 
 
