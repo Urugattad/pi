@@ -40,7 +40,7 @@
     };
 
     function addSwitchFromBackend(pin, state, name) {
-      usedPins.add(pin);
+      usedPins.add(String(pin));
       controlCount++;
 
       let container = document.getElementById("switchesContainer");
