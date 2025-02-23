@@ -6,7 +6,7 @@ import os
 import smtplib
 from email.message import EmailMessage
 
-app = Flask(_name_)
+app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Secret key for session management
 
 # Email Configuration
@@ -191,11 +191,10 @@ try:
         previous_state = motion_detected  # Update motion state
         time.sleep(0.5)  # Adjust delay as needed
 
-  except KeyboardInterrupt:
-    print("\nExiting program")
+
    
 
-if _name_ == '_main_':
+if __name__ == '__main__':
     try:
         app.run(host="0.0.0.0", debug=True)
     finally:
