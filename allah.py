@@ -168,12 +168,32 @@ def get_pir():
     if not session.get('logged_in'):
         return jsonify({'message': 'Unauthorized'}), 401
 
-    gpio_pir = 4  # PIR sensor pin
-    GPIO.setup(gpio_pir, GPIO.IN)
-    motion_detected = GPIO.input(gpio_pir)
-    if motion_detected:
-       send_email_alert()  
-    return jsonify(message="Motion Detected" if motion_detected else "Motion Not Detected")
+   # Define PIR sensor pin
+PIR_PIN = 4  
+GPIO.setup(PIR_PIN, GPIO.IN)
+
+# Track motion state to prevent multiple emails
+previous_state = False  # Initially no motion detected
+email_sent = False  # To track if email was already sent
+
+try:
+    while True:
+        motion_detected = GPIO.input(PIR_PIN)
+
+        if motion_detected and not previous_state:  # Detect motion transition
+            print("🚨 Motion detected!")
+            if not email_sent:
+                send_email_alert()
+                email_sent = True  # Mark email as sent
+        elif not motion_detected:
+            email_sent = False  # Reset flag when motion stops
+
+        previous_state = motion_detected  # Update motion state
+        time.sleep(0.5)  # Adjust delay as needed
+
+  except KeyboardInterrupt:
+    print("\nExiting program")
+   
 
 if _name_ == '_main_':
     try:
