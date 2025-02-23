@@ -165,32 +165,16 @@ def get_temperature():
 # Get PIR motion sensor data
 @app.route('/get_pir', methods=['GET'])
 def get_pir():
-    if not session.get('logged_in'):
+     if not session.get('logged_in'):
         return jsonify({'message': 'Unauthorized'}), 401
 
-   # Define PIR sensor pin
-PIR_PIN = 4  
-GPIO.setup(PIR_PIN, GPIO.IN)
+    motion_detected = True
 
-# Track motion state to prevent multiple emails
-previous_state = False  # Initially no motion detected
-email_sent = False  # To track if email was already sent
+    if motion_detected:
+        print(" Motion detected!")
+        send_email_alert()
 
-try:
-    while True:
-        motion_detected = GPIO.input(PIR_PIN)
-
-        if motion_detected and not previous_state:  # Detect motion transition
-            print("🚨 Motion detected!")
-            if not email_sent:
-                send_email_alert()
-                email_sent = True  # Mark email as sent
-        elif not motion_detected:
-            email_sent = False  # Reset flag when motion stops
-
-        previous_state = motion_detected  # Update motion state
-        time.sleep(0.5)  # Adjust delay as needed
-
+    return jsonify(motion=bool(motion_detected))
 
    
 
