@@ -3,9 +3,20 @@ import RPi.GPIO as GPIO
 import mysql.connector
 import time
 import os
+import smtplib
+from email.message import EmailMessage
+
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Secret key for session management
+
+# Email Configuration
+SMTP_SERVER = "smtp.gmail.com"  
+SMTP_PORT = 587  # TLS Port
+EMAIL_SENDER = "gurudatta220928@gmail.com"
+EMAIL_PASSWORD = "lapg qrkm pdvd hthg" 
+EMAIL_RECEIVER = "gpaykaru@gmail.com"
+
 
 # User credentials
 USERNAME = 'pi'
@@ -32,6 +43,24 @@ def read_first_line(filename):
             return True, int(f.readline())
     except (ValueError, OSError):
         return False, 0  # Return 0 if reading fails
+
+def send_email_alert():
+    msg = EmailMessage()
+    msg["Subject"] = "Motion Detected Alert!"
+    msg["From"] = EMAIL_SENDER
+    msg["To"] = EMAIL_RECEIVER
+    msg.set_content("Warning: Motion detected on your Raspberry Pi!")
+
+    try:
+        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+        server.starttls()  # Secure the connection
+        server.login(EMAIL_SENDER, EMAIL_PASSWORD)
+        server.send_message(msg)
+        server.quit()
+        print(" Email sent successfully!")
+    except Exception as e:
+        print(f" Failed to send email: {e}")
+
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
@@ -137,7 +166,6 @@ def get_temperature():
   
     return jsonify(message=f"{temperature_value}")
 
-# Get PIR motion sensor data
 @app.route('/get_pir', methods=['GET'])
 def get_pir():
     if not session.get('logged_in'):
@@ -146,10 +174,11 @@ def get_pir():
     gpio_pir = 4  # PIR sensor pin
     GPIO.setup(gpio_pir, GPIO.IN)
     motion_detected = GPIO.input(gpio_pir)
-
+    if motion_detected:
+          send_email_alert()
     return jsonify(message="Motion Detected" if motion_detected else "Motion Not Detected")
 
-if __name__ == '__main__':
+if _name_ == '__main__':
     try:
         app.run(host="0.0.0.0", debug=True)
     finally:
