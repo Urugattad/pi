@@ -232,38 +232,42 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      margin: 20px;
-      text-align: center;
-    }
+    font-family: "Courier New", monospace;
+    background-color: #0d0d0d;
+    color: #33ff33;
+    text-align: center;
+    margin-top: 100px;
+}
 
     h2:hover {
       color: #007BFF;
     }
 
     .add-gpio-btn, .add-sensor-btn {
-      position: fixed;
-      bottom: 20px;
-      background-color: #007BFF;
-      color: white;
+      background-color: #33ff33;
+      color: black;
+      padding: 14px; /* Increased padding for larger size */
+      font-size: 14px; /* Increased font size */
       border: none;
-      padding: 15px 25px;
       cursor: pointer;
-      border-radius: 8px;
-      font-size: 18px;
+      width: auto; /* Adjust width to content */
+      border-radius: 5px;
       font-weight: bold;
-      box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
-      transition: all 0.3s ease-in-out;
-    }
+      font-family: "Courier New", monospace;
+      position: fixed;
+      bottom: 10px; /* Align to bottom */
+  }
+.add-gpio-btn:hover, .add-sensor-btn:hover {
+    background-color: #28cc28;
+}
 
-    .add-gpio-btn {
-      left: 20px;
-    }
+   .add-gpio-btn {
+      left: 10px; /* Align to left */
+  }
 
-    .add-sensor-btn {
-      left: 240px;
-    }
+  .add-sensor-btn {
+      left: 200px; /* Increased space between buttons */
+  }
 
     .add-gpio-btn:hover, .add-sensor-btn:hover {
       background-color: #0056b3;
@@ -272,187 +276,181 @@
     }
 
     /* Modal Background */
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      justify-content: center;
-      align-items: center;
-    }
+ .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
 
-    /* Modal Content */
     .modal-content {
-      background: white;
-      padding: 20px;
-      width: 320px;
-      border-radius: 10px;
-      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
-      position: relative;
-      animation: fadeIn 0.3s;
-    }
+    background: #222;
+    padding: 20px;
+    width: 320px;
+    border-radius: 5px;
+    box-shadow: 0 0 15px #33ff33;
+    border: 2px solid #33ff33;
+    position: relative;
+}
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
-    }
+.modal label {
+    font-weight: bold;
+    display: block;
+    margin-top: 10px;
+}
 
-    .modal label {
-      font-weight: bold;
-      display: block;
-      margin-top: 10px;
-    }
+.modal input,
+.modal select {
+    display: block;
+    margin: 10px auto;
+    padding: 10px;
+    width: 80%;
+    border: 1px solid #33ff33;
+    border-radius: 5px;
+    background: black;
+    color: #33ff33;
+    font-family: "Courier New", monospace;
+}
 
-    .modal input, 
-    .modal select {
-      width: 100%;
-      padding: 8px;
-      margin-top: 5px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
+.modal .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    color: red;
+    font-size: 18px;
+    cursor: pointer;
+    border: none;
+}
 
-    .modal .close-btn {
+#switchesContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    padding: 20px;
+    max-width: 700px;
+    margin: 20px auto; /* adds vertical space */
+}.switch-box {
+    background: #222;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 15px #33ff33;
+    border: 2px solid #33ff33;
+    width: 200px;
+    height: 90px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.menu-container {
       position: absolute;
       top: 10px;
       right: 10px;
-      background: none;
-      color: red;
-      font-size: 18px;
-      cursor: pointer;
-      border: none;
-    }
+  }
 
-    #switchesContainer {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-      justify-content: flex-start;
-      padding: 20px;
-      max-width: 700px;
-    }
-
-    .switch-box {
-      background: white;
-      border: 1px solid #ddd;
-      padding: 15px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
-      border-radius: 8px;
-      width: 200px;
-      height: 90px;
-      position: relative;
-    }
-
-    .menu-container {
-      position: absolute;
-      top: 5px;
-      right: 5px;
-    }
-
-    .menu-icon {
+  .menu-icon {
       cursor: pointer;
       font-size: 20px;
       user-select: none;
-    }
+  }
 
-    .menu {
+  .menu {
       display: none;
       position: absolute;
       top: 25px;
       right: 0;
-      background: white;
-      border: 1px solid #ccc;
+      background: #222;
+      border: 2px solid #33ff33;
       border-radius: 5px;
-      box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 0 15px #33ff33;
       z-index: 1;
-    }
+  }
 
-    .menu button {
+  .menu button {
       background: none;
       border: none;
-      padding: 5px 10px;
+      padding: 10px;
       cursor: pointer;
       width: 100%;
       text-align: left;
-    }
+      font-family: "Courier New", monospace;
+      color: #33ff33;
+  }
 
-    .menu button:hover {
-      background-color: #f0f0f0;
-    }
-
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 40px;
-      height: 22px;
-    }
-
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #ccc;
-      transition: .4s;
-      border-radius: 34px;
-    }
-
-    input:checked + .slider {
-      background-color: #28a745;
-    }
-
-    input:checked + .slider:before {
-      transform: translateX(18px);
-    }
-
-    #responseMessage {
-      color: green;
-      font-weight: bold;
-      margin-top: 15px;
-    }
-
-    .sensor-card {
-      background: white;
-      border-radius: 8px;
-      padding: 15px;
-      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-      margin: 10px auto;
-      width: 250px;
-      font-size: 18px;
-      font-weight: bold;
-      text-align: center;
-    }
-
-    .retro-box {
-      font-family: 'Press Start 2P', cursive;
-      font-size: 12px;
-      text-transform: uppercase;
-      padding: 10px;
-      border: 4px solid black;
-      display: inline-block;
-    }
-
-    #temperatureOutput {
-      position: absolute;
-      top: 100px;
-      right: 10px;
-      background: #00ff00;
+  .menu button:hover {
+      background-color: #28cc28;
       color: black;
-      border-radius: 5px;
-      padding: 15px 20px;
-      font-size: 20px;
-      font-weight: bold;
-      border: 4px solid black;
-    }
+  }
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 22px;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+input:checked + .slider {
+    background-color: #28a745;
+}
+
+input:checked + .slider:before {
+    transform: translateX(18px);
+}
+
+#responseMessage {
+    color: #33ff33;
+    font-weight: bold;
+    margin-top: 15px;
+}
+
+/* Optional: If .retro-box is not needed, you can remove or restyle it */
+.retro-box {
+    font-family: "Courier New", monospace;
+    font-size: 12px;
+    text-transform: uppercase;
+    padding: 10px;
+    border: 2px solid #33ff33;
+    background: #222;
+    display: inline-block;
+    color: #33ff33;
+}
+    #temperatureOutput {
+    position: static; /* removes absolute positioning */
+    background: #00ff00;
+    color: black;
+    border-radius: 5px;
+    padding: 15px 20px;
+    font-size: 20px;
+    font-weight: bold;
+    border: 4px solid black;
+    margin: 20px auto; /* centers and adds spacing */
+    display: block; /* ensure it takes full width if needed */
+    max-width: 300px; /* optional: limits its width */
+}
+hr {
+    margin: 20px 0;
+}
 
     #motion {
       position: absolute;
