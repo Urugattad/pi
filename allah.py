@@ -46,8 +46,7 @@ def read_first_line(filename):
         return False, 0  # Return 0 if reading fails
 
 def get_fake_temperature():
-    return round(random.uniform(25.0, 30
-                                .0), 1)  # Simulates 20.0°C to 35.0°C
+    return round(random.uniform(25.0, 30.0), 1)  
 
 def send_email_alert():
     msg = EmailMessage()
@@ -185,8 +184,8 @@ def get_pir():
         send_email_alert()
         return jsonify(message="motion detected")
     else
-    print("no motion")
-    return jsonify(message="Motion Not Detected")
+        print("no motion")
+        return jsonify(message="Motion Not Detected")
 
 if __name__ == '__main__':
     try:
