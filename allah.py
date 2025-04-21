@@ -4,6 +4,7 @@ import mysql.connector
 import time
 import os
 import smtplib
+import random
 from email.message import EmailMessage
 
 
@@ -43,6 +44,10 @@ def read_first_line(filename):
             return True, int(f.readline())
     except (ValueError, OSError):
         return False, 0  # Return 0 if reading fails
+
+def get_fake_temperature():
+    return round(random.uniform(25.0, 30
+                                .0), 1)  # Simulates 20.0°C to 35.0°C
 
 def send_email_alert():
     msg = EmailMessage()
@@ -159,8 +164,9 @@ def get_temperature():
     if not session.get('logged_in'):
         return jsonify({'message': 'Unauthorized'}), 401
 
-    flag, temperature = read_first_line(DEVICE_PATH + "/in_temp_input")
-    temperature_value = (temperature // 1000) if flag else "N.A."
+    
+    temperature = get_fake_temperature()
+    return jsonify({'message': f'{temperature}'})
 
   
   
@@ -175,10 +181,14 @@ def get_pir():
     GPIO.setup(gpio_pir, GPIO.IN)
     motion_detected = GPIO.input(gpio_pir)
     if motion_detected:
-          send_email_alert()
-    return jsonify(message="Motion Detected" if motion_detected else "Motion Not Detected")
+        print("motion detected")
+        send_email_alert()
+        return jsonify(message="motion detected")
+    else
+    print("no motion")
+    return jsonify(message="Motion Not Detected")
 
-if _name_ == '__main__':
+if __name__ == '__main__':
     try:
         app.run(host="0.0.0.0", debug=True)
     finally:
