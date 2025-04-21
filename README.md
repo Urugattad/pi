@@ -1,3 +1,6 @@
+connection for ssh
+
+ssh-keygen -R <your ip>
 sudo apt install python3-pip
 
 pip install mysql-connector-python --break-system-packages
@@ -21,6 +24,7 @@ Answer Y (Yes) to all security questions.
 sudo mysql -u root -p
 
 CREATE DATABASE picloudcontrol;
+
 USE picloudcontrol;
 
 CREATE TABLE gpio_pin_states (
