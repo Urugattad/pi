@@ -187,26 +187,24 @@
     }
 
     function getmotion() {
-      fetch('/get_pir', {
-        method: 'GET'
-      })
-      .then(response => response.json())
-      .then(data => {
-        document.getElementById("motion").innerText = innerHTML = `
-          <button class="close-btn" onclick="hideMotionForm()">X</button> 
-          motion: ${data.message}
-        `;
-      })
-      .catch(error => console.error('Error fetching motion:', error));
-    }
+    fetch('/get_pir', { method: 'GET' })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById("motion").innerHTML = "<strong>Motion</strong><br>Status: " + data.message;
+        })
+        .catch(error => console.error('Error fetching motion:', error));
+}
+
+
+
 
     function hideMotionForm() {
       document.getElementById("motion").style.display = "none";
     }
 
     // Call functions every 5 seconds to keep values updated (if needed)
-    //setInterval(getTemperature, 5000);
-    //setInterval(getmotion, 100);
+    setInterval(getTemperature, 5000);
+    setInterval(getmotion, 100);
 
     // Make sure the elements are visible from the start
     document.getElementById("temperatureOutput").style.display = "block";
